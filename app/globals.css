@@ -1,26 +1,44 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-primary: hsl(var(--primary));
+  --color-accent: hsl(var(--accent));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-border: hsl(var(--border));
+
+  --font-retro: var(--fuente-retro), serif;
+  --font-base: var(--fuente-base), sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --fondoCrema: 39 60% 94%;       /* Vainilla suave de fondo */
+    --naranjaHolo: 16 100% 50%;     /* Naranja vibrante */
+    --rosaHolo: 330 100% 70%;       /* Rosa chicle */
+    --textoOscuro: 16 30% 15%;      /* Marrón/negro cálido muy estético */
+    
+    --background: var(--fondoCrema);
+    --foreground: var(--textoOscuro);
+    
+    --primary: var(--naranjaHolo);
+    --accent: var(--rosaHolo);
+    
+    --card: 0 0% 100%;
+    --card-foreground: var(--textoOscuro);
+    --border: 16 30% 85%;
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  .dark {
+    /* Modo oscuro adaptado para que los colores neón sigan resaltando */
+    --background: 260 30% 12%;
+    --foreground: 39 60% 94%;
+    --primary: var(--naranjaHolo);
+    --accent: var(--rosaHolo);
+    --card: 260 30% 18%;
+    --card-foreground: 39 60% 94%;
+    --border: 260 30% 25%;
+  }
 }
