@@ -17,21 +17,27 @@
 
 @layer base {
   :root {
-    /* Paleta inspirada en la imagen de referencia (Valores HSL) */
-    --fondoCrema: 39 60% 94%;       /* Vainilla suave de fondo */
-    --naranjaHolo: 16 100% 50%;     /* Naranja vibrante */
-    --rosaHolo: 330 100% 70%;       /* Rosa chicle */
-    --textoOscuro: 16 30% 15%;      /* Marrón/negro cálido muy estético */
-    
-    --background: var(--fondoCrema);
-    --foreground: var(--textoOscuro);
-    
-    --primary: var(--naranjaHolo);
-    --accent: var(--rosaHolo);
-    
+    --background: 43 53% 94%;
+    --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
-    --card-foreground: var(--textoOscuro);
-    --border: 16 30% 85%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 24 95% 53%; /* Tu naranja fuerte original se queda intacto */
+    --primary-light: 24 95% 70%; /* <--- AGREGAMOS ESTE: El naranja más claro de la imagen */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 329 86% 70%; /* Tu rosaHolo */
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+    --radius: 0.5rem;
   }
 
   .dark {
