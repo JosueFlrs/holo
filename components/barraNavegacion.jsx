@@ -1,3 +1,4 @@
+// components/barraNavegacion.jsx
 'use client';
 
 import CarritoCompras from "./carritoCompras";
@@ -7,7 +8,7 @@ export default function BarraNavegacion() {
         <header className="sticky top-0 z-50 w-full bg-primary border-b-4 border-slate-900 px-6 py-4 shadow-sm">
             <div className="max-w-6xl mx-auto flex items-center justify-between">
 
-                {/* Logo de HOLO */}
+                {/* Logo de la marca con la tipografía retro de los 70s */}
                 <div className="flex flex-col select-none">
                     <span className="font-retro text-4xl text-white tracking-widest drop-shadow-[2px_2px_0px_rgba(15,23,42,1)]">
                         HOLO
@@ -17,7 +18,7 @@ export default function BarraNavegacion() {
                     </span>
                 </div>
 
-                {/* Contenedor del Carrito */}
+                {/* Sección del Carrito Desplegable */}
                 <div className="flex items-center gap-4">
                     <CarritoCompras />
                 </div>

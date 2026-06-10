@@ -1,3 +1,4 @@
+// hooks/useContadorCarrito.js
 import { useEffect, useState } from 'react';
 import { usarCarrito } from '@/store/usarCarrito';
 

@@ -9,36 +9,26 @@ import { generarEnlaceWhatsapp } from "@/utilities/generarEnlaceWhatsapp";
 import { ShoppingCart, Trash2, MessageSquare } from "lucide-react";
 
 export default function CarritoCompras() {
-    // 1. REGLA DE ORO DE REACT: Todos los hooks van primero, siempre.
+    // 1. ESTADO REACTIVO: Obligatorio usar el hook para que la UI se entere de los cambios.
     const articulosEnCarrito = usarCarrito((estado) => estado.articulosEnCarrito);
-    const obtenerTotalFinal = usarCarrito((estado) => estado.obtenerTotalFinal);
-    const eliminarDelCarrito = usarCarrito((estado) => estado.eliminarDelCarrito);
-    const vaciarCarrito = usarCarrito((estado) => estado.vaciarCarrito);
 
-    // 2. Control de montaje para evitar el choque de hidratación
+    // 2. ESTADO DE MONTAJE: Para evitar el choque de hidratación entre servidor y cliente.
     const [estaMontado, setEstaMontado] = useState(false);
 
+    // 3. EFECTO DE HIDRATACIÓN: Obligatorio por usar skipHydration: true en Zustand.
     useEffect(() => {
-        // Esto solo se ejecuta una vez que el componente ya está en el navegador
+        usarCarrito.persist.rehydrate();
         setEstaMontado(true);
     }, []);
 
-    // 3. Variables derivadas simples
-    const totalArticulos = articulosEnCarrito.reduce(
-        (acumulador, articulo) => acumulador + articulo.cantidadComprada,
-        0
-    );
+    // 4. ACCIONES PURAS: Tu solución aplicada. Usamos getState() para no registrar hooks innecesarios.
+    const obtenerTotalFinal = usarCarrito.getState().obtenerTotalFinal;
+    const eliminarDelCarrito = usarCarrito.getState().eliminarDelCarrito;
+    const vaciarCarrito = usarCarrito.getState().vaciarCarrito;
 
-    const manejarEnvioPedido = () => {
-        const total = obtenerTotalFinal();
-        const urlWhatsapp = generarEnlaceWhatsapp(articulosEnCarrito, total);
-        window.open(urlWhatsapp, '_blank');
-        vaciarCarrito();
-    };
-
-    // 4. BARRERA DE SEGURIDAD: Va siempre después de todos los hooks.
-    // Si el componente está en el servidor, devolvemos un botón decorativo.
+    // 5. BARRERA SSR: Siempre después de los hooks (useState, useEffect, usarCarrito).
     if (!estaMontado) {
+        // Mientras estamos en el servidor, dibujamos un botón idéntico pero inactivo.
         return (
             <Button size="icon" className="relative bg-primary text-white rounded-full h-12 w-12 border-2 border-slate-900 shadow-md">
                 <ShoppingCart className="h-5 w-5" />
@@ -46,15 +36,30 @@ export default function CarritoCompras() {
         );
     }
 
-    // 5. El renderizado real para el cliente
+    // --- A partir de aquí, el código es 100% del cliente ---
+
+    const totalItems = articulosEnCarrito.reduce(
+        (acumulador, articulo) => acumulador + articulo.cantidadComprada,
+        0
+    );
+
+    const manejarEnvioPedido = () => {
+        // Ejecutamos la función estática obtenida con getState()
+        const total = obtenerTotalFinal();
+        const urlWhatsapp = generarEnlaceWhatsapp(articulosEnCarrito, total);
+
+        window.open(urlWhatsapp, '_blank');
+        vaciarCarrito(); // Limpiamos la memoria con la acción directa
+    };
+
     return (
         <Sheet>
             <SheetTrigger asChild>
                 <Button size="icon" className="relative bg-primary hover:bg-primary/90 text-white rounded-full h-12 w-12 shadow-md border-2 border-slate-900 cursor-pointer">
                     <ShoppingCart className="h-5 w-5" />
-                    {totalArticulos > 0 && (
+                    {totalItems > 0 && (
                         <span className="absolute -top-1 -right-1 bg-accent text-slate-900 font-bold text-xs h-5 w-5 rounded-full flex items-center justify-center border-2 border-slate-900 animate-bounce">
-                            {totalArticulos}
+                            {totalItems}
                         </span>
                     )}
                 </Button>

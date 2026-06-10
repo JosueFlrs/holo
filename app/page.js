@@ -1,11 +1,9 @@
-'use client';
-
-import { useState } from "react";
+// app/page.jsx
 import BarraNavegacion from "@/components/barraNavegacion";
 import TarjetaProducto from "@/components/tarjetaProducto";
-  
-// Estructura de datos limpia con nombres descriptivos en castellano y camelCase
-const catalogoFijoProductos = [
+
+// Simulación exacta del catálogo relacional tal como vendrá de Supabase
+const catalogoSimuladoProductos = [
   {
     id: 1,
     nombreProducto: "Sticker Michi Holográfico",
@@ -39,15 +37,12 @@ const catalogoFijoProductos = [
 ];
 
 export default function PaginaInicio() {
-  // Manejamos la lista dentro del flujo de estado de React para estabilizar la renderización
-  const [listaProductos] = useState(catalogoFijoProductos);
-
   return (
     <div className="min-h-screen bg-background pb-12">
-      {/* Cabecera de la aplicación */}
+      {/* Barra superior con estilo e identidad */}
       <BarraNavegacion />
 
-      {/* Hero estético con el estilo visual de la marca */}
+      {/* Banner de Bienvenida con estilo retro-pop / Y2K */}
       <section className="bg-accent border-b-4 border-slate-900 py-12 px-6 text-center select-none">
         <h1 className="font-retro text-4xl md:text-6xl text-slate-950 tracking-wide drop-shadow-[2px_2px_0px_rgba(255,255,255,1)]">
           ¡Dale onda a tus cosas!
@@ -57,18 +52,15 @@ export default function PaginaInicio() {
         </p>
       </section>
 
-      {/* Contenedor principal de la grilla */}
+      {/* Grilla principal del catálogo de HOLO */}
       <main className="max-w-6xl mx-auto px-6 mt-12">
         <h2 className="font-retro text-3xl text-slate-950 mb-8 tracking-wide">
           Diseños Disponibles
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {listaProductos.map((unProducto) => (
-            <TarjetaProducto 
-              key={`producto-id-${unProducto.id}`} 
-              unProducto={unProducto} 
-            />
+          {catalogoSimuladoProductos.map((unProducto) => (
+            <TarjetaProducto key={unProducto.id} unProducto={unProducto} />
           ))}
         </div>
       </main>

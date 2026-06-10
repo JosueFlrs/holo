@@ -1,3 +1,4 @@
+// store/usarCarrito.js
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -49,7 +50,7 @@ export const usarCarrito = create(
                 });
             },
 
-            // 3. Vaciar el carrito por completo (luego de finalizar compra o si el usuario lo desea)
+            // 3. Vaciar el carrito por completo (lo usaremos después de enviar a WhatsApp)
             vaciarCarrito: () => set({ articulosEnCarrito: [] }),
 
             // 4. Calcular el total acumulado de la compra
@@ -62,7 +63,8 @@ export const usarCarrito = create(
             },
         }),
         {
-            name: 'holo-carrito-almacenamiento',
+            name: 'holo-carrito-almacenamiento', // Clave única para el localStorage
+            // Evita el choque visual de hidratación en Next.js esperando a que el cliente cargue
             skipHydration: true,
         }
     )
