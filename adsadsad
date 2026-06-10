@@ -1,0 +1,13 @@
+* [33m376aa7b[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Arreglo de Bug de Hook
+[31m|[m *   [33md184dcf[m[33m ([m[1;31morigin/main[m[33m)[m Merge branch 'main' of https://github.com/JosueFlrs/holo
+[31m|[m [32m|[m[33m\[m  
+[31m|[m [32m|[m * [33m3758c71[m arreglo de importacion utilidades a utilities
+[31m|[m * [33m|[m [33m63cbed7[m arreglo de importacion
+[31m|[m [33m|[m[33m/[m  
+[31m|[m * [33mc0c3aa4[m creando barra de navegacion y pagina de inicio
+[31m|[m[31m/[m  
+* [33mc96c1bf[m Maquetacion de la Tarjeta de Producto
+* [33m5d01264[m Maquetacion Carrito de Compras Desplegable
+* [33m02d4bdb[m instalamos shadcn/ui y descagamos los componentes button, card y sheet
+* [33m8c12d49[m Creación del estado global del Carrito de Compras (Zustand) y el generador de mensajes para WhatsApp.
+* [33m088e231[m commit inicial - HOLO: Paleta de colores y fuentes tipográficas

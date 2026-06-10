@@ -5,6 +5,10 @@ import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { usarCarrito } from "@/store/usarCarrito";
+<<<<<<< HEAD
+=======
+import { useContadorCarrito } from "@/hooks/useContadorCarrito";
+>>>>>>> d184dcfa4dbe673983974feb3c96a99d7cb62c7c
 import { generarEnlaceWhatsapp } from "@/utilities/generarEnlaceWhatsapp";
 import { ShoppingCart, Trash2, MessageSquare } from "lucide-react";
 
