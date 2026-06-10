@@ -3,7 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Button } from "@/components/ui/button";
 import { usarCarrito } from "@/store/usarCarrito";
 import { useContadorCarrito } from "@/hooks/useContadorCarrito";
-import { generarEnlaceWhatsapp } from "@/utilidades/generarEnlaceWhatsapp";
+import { generarEnlaceWhatsapp } from "@/utilities/generarEnlaceWhatsapp";
 import { ShoppingCart, Trash2, MessageSquare } from "lucide-react";
 
 export default function CarritoCompras() {
