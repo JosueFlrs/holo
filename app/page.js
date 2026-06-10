@@ -1,63 +1,75 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState } from "react";
+import BarraNavegacion from "@/components/barraNavegacion";
+import TarjetaProducto from "@/components/tarjetaProducto";
+
+// Estructura de datos limpia con nombres descriptivos en castellano y camelCase
+const catalogoFijoProductos = [
+  {
+    id: 1,
+    nombreProducto: "Sticker Michi Holográfico",
+    descripcion: "Sticker de gatito astronauta con brillo holográfico premium. Resistente al agua, ideal para la compu o el termo.",
+    categorias: { nombreCategoria: "Stickers" },
+    variantesProducto: [
+      { id: 101, nombreVariante: "Chico (5cm)", precioUnitario: 800, urlImagen: "https://images.unsplash.com/photo-1572375995301-4598b2c20ce4?w=500" },
+      { id: 102, nombreVariante: "Grande (10cm)", precioUnitario: 1400, urlImagen: "https://images.unsplash.com/photo-1572375995301-4598b2c20ce4?w=500" }
+    ]
+  },
+  {
+    id: 2,
+    nombreProducto: "Agenda Retro Pop 2026",
+    descripcion: "Agenda perpetua con tapas duras laminadas, hojas de puntos de 90g y stickers de regalo para organizarte con onda.",
+    categorias: { nombreCategoria: "Agendas" },
+    variantesProducto: [
+      { id: 201, nombreVariante: "Tapa Rosa - Espiral", precioUnitario: 18500, urlImagen: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=500" },
+      { id: 202, nombreVariante: "Tapa Naranja - Cosida", precioUnitario: 21000, urlImagen: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=500" }
+    ]
+  },
+  {
+    id: 3,
+    nombreProducto: "Remera Y2K Over-sized",
+    descripcion: "Remera 100% algodón peinado de calce suelto con estampa en tinta relieve reflectiva en la espalda.",
+    categorias: { nombreCategoria: "Remeras" },
+    variantesProducto: [
+      { id: 301, nombreVariante: "Talle S/M", precioUnitario: 24000, urlImagen: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500" },
+      { id: 302, nombreVariante: "Talle L/XL", precioUnitario: 26500, urlImagen: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500" }
+    ]
+  }
+];
+
+export default function PaginaInicio() {
+  // Manejamos la lista dentro del flujo de estado de React para estabilizar la renderización
+  const [listaProductos] = useState(catalogoFijoProductos);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <div className="min-h-screen bg-background pb-12">
+      {/* Cabecera de la aplicación */}
+      <BarraNavegacion />
+
+      {/* Hero estético con el estilo visual de la marca */}
+      <section className="bg-accent border-b-4 border-slate-900 py-12 px-6 text-center select-none">
+        <h1 className="font-retro text-4xl md:text-6xl text-slate-950 tracking-wide drop-shadow-[2px_2px_0px_rgba(255,255,255,1)]">
+          ¡Dale onda a tus cosas!
+        </h1>
+        <p className="font-base text-sm md:text-base text-slate-800 font-bold mt-3 max-w-xl mx-auto">
+          Catálogo interactivo con diseños llenos de brillo. Armá tu pedido y coordiná la entrega al toque por WhatsApp.
+        </p>
+      </section>
+
+      {/* Contenedor principal de la grilla */}
+      <main className="max-w-6xl mx-auto px-6 mt-12">
+        <h2 className="font-retro text-3xl text-slate-950 mb-8 tracking-wide">
+          Diseños Disponibles
+        </h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {listaProductos.map((unProducto) => (
+            <TarjetaProducto 
+              key={`producto-id-${unProducto.id}`} 
+              unProducto={unProducto} 
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          ))}
         </div>
       </main>
     </div>
