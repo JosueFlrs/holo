@@ -17,16 +17,16 @@ export default function TarjetaProducto({ unProducto }) {
 
     if (!varianteInicial) return null;
 
-    // Función para transformar "Sticker Gato Cósmico" en "sticker-gato-cosmico"
+    // Función para transformar el nombre del producto en un slug para la URL
     const generarSlug = (texto) => {
         return texto
             .toLowerCase()
             .trim()
-            .normalize('NFD') // Remueve acentos de forma nativa
+            .normalize('NFD')
             .replace(/[\u0300-\u036f]/g, '')
-            .replace(/[^\w\s-]/g, '') // Remueve caracteres especiales
-            .replace(/[\s_-]+/g, '-') // Reemplaza espacios por guiones
-            .replace(/^-+|-+$/g, ''); // Limpia guiones sobrantes
+            .replace(/[^\w\s-]/g, '')
+            .replace(/[\s_-]+/g, '-')
+            .replace(/^-+|-+$/g, '');
     };
 
     const manejarRedireccion = () => {
@@ -37,16 +37,18 @@ export default function TarjetaProducto({ unProducto }) {
     return (
         <Card
             onClick={manejarRedireccion}
-            className="group bg-background border border-[#fca266]/20 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-[#fca266]/5 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 cursor-pointer relative"
+            className="group bg-transparent shadow-none hover:shadow-xl hover:shadow-slate-200/80 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 cursor-pointer relative p-2"
         >
             <div>
-                <div className="relative aspect-square w-full bg-slate-950/5 overflow-hidden">
+                {/* Contenedor de la Imagen: bg-background para fusionar los PNGs transparentes */}
+                <div className="relative aspect-square w-full bg-background rounded-2xl overflow-hidden">
                     <img
                         src={varianteInicial.urlImagen || "https://images.unsplash.com/photo-1572375995301-4598b2c20ce4?w=500"}
                         alt={unProducto.nombreProducto}
                         className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
                     />
 
+                    {/* Tag de Categoría flotante Rosa */}
                     {unProducto.categorias && (
                         <span className="absolute top-3 left-3 bg-accent text-white font-base font-bold text-[10px] px-2.5 py-1 rounded-full shadow-sm tracking-wide uppercase">
                             {unProducto.categorias.nombreCategoria}
@@ -54,19 +56,22 @@ export default function TarjetaProducto({ unProducto }) {
                     )}
                 </div>
 
-                <CardContent className="p-4 pb-2 text-center">
+                {/* Detalles Básicos */}
+                <CardContent className="p-4 pb-1 text-center">
                     <h3 className="font-retro text-lg text-slate-900 leading-tight group-hover:text-primary transition-colors duration-200 line-clamp-1">
                         {unProducto.nombreProducto}
                     </h3>
                 </CardContent>
             </div>
 
-            <CardFooter className="p-4 pt-0 flex flex-col items-center justify-center w-full pb-5">
+            {/* Footer Fijo con Precio */}
+            <CardFooter className="p-4 pt-0 flex flex-col items-center justify-center w-full pb-2">
                 <span className="font-retro text-xl text-slate-900 tracking-wide">
                     ${Number(varianteInicial.precioUnitario).toLocaleString('es-AR')}
                 </span>
 
-                <div className="w-full mt-3 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 absolute bottom-3 left-0 px-4 bg-background/95 backdrop-blur-sm py-1">
+                {/* BOTÓN FLOTANTE: Aparece suavemente desde abajo en el hover */}
+                <div className="w-full mt-3 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 absolute bottom-2 left-0 px-4 bg-background/90 backdrop-blur-sm py-1 z-10">
                     <Button
                         size="sm"
                         className="w-full bg-primary hover:bg-primary/90 text-white font-base font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all h-10 gap-2 cursor-pointer"
