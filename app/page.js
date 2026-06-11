@@ -17,13 +17,13 @@ export default function PaginaInicio() {
     async function cargarDatosTienda() {
       setEstaCargando(true);
 
-      // 1. Traemos las categorías reales de Supabase
+      // 1. Traemos las categorías reales para la barra de filtros
       const { data: categoriasData } = await clienteSupabase
         .from("categorias")
         .select("id, nombreCategoria");
 
-      // 2. Traemos los productos con sus relaciones
-      const { data: productosData } = await clienteSupabase
+      // 2. CAMBIO CLAVE: Consultamos los productos ordenados por 'created_at' descendente y limitado a 12
+      const { data: productosData, error } = await clienteSupabase
         .from('productos')
         .select(`
           id,
@@ -31,7 +31,13 @@ export default function PaginaInicio() {
           descripcion,
           categorias ( nombreCategoria ),
           variantesProducto ( id, nombreVariante, precioUnitario, urlImagen )
-        `);
+        `)
+        .order('created_at', { ascending: false }) // Trae los más nuevos primero
+        .limit(12); // Restringe el resultado a máximo 12 productos
+
+      if (error) {
+        console.error("Error al obtener los últimos productos:", error);
+      }
 
       if (categoriasData) setCategorias(categoriasData);
       if (productosData) setProductos(productosData);
@@ -41,7 +47,7 @@ export default function PaginaInicio() {
     cargarDatosTienda();
   }, []);
 
-  // Filtrado lógico en tiempo real
+  // Filtrado lógico en tiempo real sobre los 12 productos descargados
   const productosFiltrados = categoriaSeleccionada === "Todos"
     ? productos
     : productos.filter(p => p.categorias?.nombreCategoria === categoriaSeleccionada);
@@ -60,30 +66,27 @@ export default function PaginaInicio() {
         </p>
       </section>
 
-      {/* SECCIÓN: Barra de Filtros con fondo Naranja Claro y botones Rosa */}
-      <section className="bg-[shadow-sm] py-6 px-6 border-y border-slate-200/40 sticky top-19 z-40 transition-all duration-200" style={{ backgroundColor: 'hsl(24, 95%, 70%)' }}>
+      {/* Sección: Barra de Filtros con fondo Naranja Claro y botones Rosa */}
+      <section className="py-6 px-6 border-y border-slate-200/40 sticky top-19 z-40 transition-all duration-200" style={{ backgroundColor: 'hsl(24, 95%, 70%)' }}>
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
 
-          {/* Título de la sección en un color oscuro suave para que contraste bien sobre el naranja claro */}
-          <div className="flex items-center gap-2 font-retro text-lg text-background tracking-wide">
+          <div className="flex items-center gap-2 text-slate-900 font-retro text-lg tracking-wide select-none">
+            <Sparkles className="h-5 w-5 text-slate-900/80" />
             <span>¿Qué estás buscando?</span>
           </div>
 
           {/* Contenedor de Botones de Filtro */}
           <div className="flex flex-wrap gap-2 justify-center">
-
-            {/* Botón de "Todos" */}
             <button
               onClick={() => setCategoriaSeleccionada("Todos")}
               className={`text-xs px-4 py-2 rounded-xl border transition-all cursor-pointer font-base font-bold uppercase tracking-wider ${categoriaSeleccionada === "Todos"
-                ? 'bg-accent text-background border-transparent shadow-md scale-105' // Activo: Rosa con letras crema
-                : 'bg-white/40 text-slate-900 border-white/20 hover:bg-white/60'    // Inactivo: Blanco translúcido suave
+                  ? 'bg-accent text-background border-transparent shadow-md scale-105'
+                  : 'bg-white/40 text-slate-900 border-white/20 hover:bg-white/60'
                 }`}
             >
               Todos
             </button>
 
-            {/* Render dinámico de las categorías */}
             {categorias.map((cat) => {
               const esActivo = categoriaSeleccionada === cat.nombreCategoria;
               return (
@@ -91,8 +94,8 @@ export default function PaginaInicio() {
                   key={`filtro-${cat.id}`}
                   onClick={() => setCategoriaSeleccionada(cat.nombreCategoria)}
                   className={`text-xs px-4 py-2 rounded-xl border transition-all cursor-pointer font-base font-bold uppercase tracking-wider ${esActivo
-                    ? 'bg-accent text-background border-transparent shadow-md scale-105' // Activo: Rosa con letras crema
-                    : 'bg-white/40 text-slate-900 border-white/20 hover:bg-white/60'    // Inactivo: Blanco translúcido suave
+                      ? 'bg-accent text-background border-transparent shadow-md scale-105'
+                      : 'bg-white/40 text-slate-900 border-white/20 hover:bg-white/60'
                     }`}
                 >
                   {cat.nombreCategoria}
@@ -104,22 +107,22 @@ export default function PaginaInicio() {
         </div>
       </section>
 
-      {/* Grilla principal del catálogo */}
+      {/* Grilla principal del catálogo (Novedades) */}
       <main className="max-w-6xl mx-auto px-6 mt-12">
+        {/* Título dinámico que aclara que son los ingresos más recientes */}
         <h2 className="font-retro text-3xl text-foreground mb-8 tracking-wide">
-          {categoriaSeleccionada === "Todos" ? "Diseños Disponibles" : `Filtrado por: ${categoriaSeleccionada}`}
+          {categoriaSeleccionada === "Todos" ? "Últimos Ingresos" : `Novedades en: ${categoriaSeleccionada}`}
         </h2>
 
         {estaCargando ? (
           <div className="text-center font-base text-foreground/40 py-20 animate-pulse font-bold">
-            Sincronizando el catálogo con Supabase...
+            Sincronizando las novedades con Supabase...
           </div>
         ) : productosFiltrados.length === 0 ? (
           <p className="text-center font-base text-foreground/40 py-16 bg-white rounded-2xl border border-slate-200/60 shadow-sm">
-            No se encontraron productos en la categoría "{categoriaSeleccionada}".
+            No se encontraron productos recientes en la categoría "{categoriaSeleccionada}".
           </p>
         ) : (
-          /* CAMBIO CLAVE: Cambiamos a lg:grid-cols-4 para achicar tarjetas y meter una más por fila */
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {productosFiltrados.map((unProducto) => (
               <TarjetaProducto key={unProducto.id} unProducto={unProducto} />
