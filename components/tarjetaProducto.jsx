@@ -31,7 +31,7 @@ export default function TarjetaProducto({ unProducto }) {
 
     const manejarRedireccion = () => {
         const urlLimpia = generarSlug(unProducto.nombreProducto);
-        enrutador.push(`/producto/${urlLimpia}`);
+        enrutador.push(`/productos/${urlLimpia}`);
     };
 
     return (
