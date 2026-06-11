@@ -11,9 +11,15 @@ import { Menu, X, ChevronDown, Search } from "lucide-react";
 export default function BarraNavegacion() {
     const enrutador = useRouter();
     const parametrosUrl = useSearchParams();
+
     const [categorias, setCategorias] = useState([]);
     const [menuCelularAbierto, setMenuCelularAbierto] = useState(false);
     const [desplegableAbierto, setDesplegableAbierto] = useState(false);
+
+    // Estados para la transformación de la barra
+    const [mostrarBuscador, setMostrarBuscador] = useState(false);
+    const [textoBusquedaNav, setTextoBusquedaNav] = useState("");
+    const referenciaInput = useRef(null);
 
     const idTemporizador = useRef(null);
 
@@ -34,6 +40,20 @@ export default function BarraNavegacion() {
         };
     }, []);
 
+    // Autofoco al input cuando toda la barra muta en el buscador
+    useEffect(() => {
+        if (mostrarBuscador && referenciaInput.current) {
+            referenciaInput.current.focus();
+        }
+    }, [mostrarBuscador]);
+
+    // Sincronizar por si limpian la búsqueda desde las etiquetas del catálogo
+    useEffect(() => {
+        const queryBuscar = parametrosUrl.get("buscar") || "";
+        setTextoBusquedaNav(queryBuscar);
+        if (!queryBuscar) setMostrarBuscador(false);
+    }, [parametrosUrl]);
+
     const manejarEntradaMouse = () => {
         if (idTemporizador.current) {
             clearTimeout(idTemporizador.current);
@@ -48,105 +68,152 @@ export default function BarraNavegacion() {
         }, 500);
     };
 
+    const ejecutarBusquedaNavbar = (e) => {
+        if (e) e.preventDefault();
+
+        if (textoBusquedaNav.trim()) {
+            enrutador.push(`/productos?buscar=${encodeURIComponent(textoBusquedaNav.trim())}`);
+        } else {
+            enrutador.push("/productos");
+            setMostrarBuscador(false);
+        }
+    };
+
     return (
-        // CONTENEDOR FLOTANTE
+        // CONTENEDOR FLOTANTE PADRE
         <div className="sticky top-0 z-50 w-full px-4 pt-4 pb-2 bg-transparent select-none">
 
-            {/* LA ISLA: Bajamos la opacidad a 85% y subimos el blur para un efecto cristal naranja premium */}
-            <header className="max-w-5xl mx-auto bg-primary/85 backdrop-blur-xl transition-all duration-300 shadow-lg rounded-2xl border border-white/20">
+            {/* SOLUCIÓN: Quitamos 'overflow-hidden' de este header para liberar el Dropdown */}
+            <header className="max-w-5xl mx-auto bg-primary/85 backdrop-blur-xl transition-all duration-300 shadow-lg rounded-4xl border border-white/20">
 
                 <div className="w-full px-6 h-16 flex items-center justify-between">
 
-                    {/* LOGO */}
-                    <Link href="/" className="flex items-center gap-3 select-none hover:opacity-90 transition-opacity">
-                        <div className="h-9 w-9 bg-background rounded-xl flex items-center justify-center text-primary font-retro text-xl shadow-sm">
-                            H
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="font-retro text-2xl text-background tracking-wide leading-none">
-                                HOLO
-                            </span>
-                            <span className="font-base text-[10px] font-semibold text-background/70 tracking-wider uppercase mt-0.5">
-                                Stickers & Más
-                            </span>
-                        </div>
-                    </Link>
-
-                    {/* MENÚ ESCRITORIO */}
-                    <div className="hidden md:flex items-center gap-8">
-                        <Link
-                            href="/"
-                            className="font-base text-xs font-bold uppercase tracking-wider text-background hover:text-background/80 transition-colors"
+                    {/* VISTA A: MODO BUSCADOR EXPANDIDO */}
+                    {mostrarBuscador ? (
+                        <form
+                            onSubmit={ejecutarBusquedaNavbar}
+                            className="w-full h-full flex items-center gap-4 animate-in fade-in duration-200"
                         >
-                            Inicio
-                        </Link>
+                            <Search className="h-5 w-5 text-background/60 shrink-0" />
 
-                        <div
-                            className="relative"
-                            onMouseEnter={manejarEntradaMouse}
-                            onMouseLeave={manejarSalidaMouse}
-                        >
-                            <button className="flex items-center gap-1 font-base text-xs font-bold uppercase tracking-wider text-background hover:text-background/80 transition-colors cursor-pointer py-1">
-                                Productos
-                                <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${desplegableAbierto ? "rotate-180" : ""}`} />
+                            <input
+                                ref={referenciaInput}
+                                type="text"
+                                placeholder="Escribí el nombre del sticker que buscás y apretá Enter..."
+                                value={textoBusquedaNav}
+                                onChange={(e) => setTextoBusquedaNav(e.target.value)}
+                                className="w-full h-full bg-transparent text-background font-base text-sm focus:outline-none placeholder:text-background/50"
+                            />
+
+                            {/* Botón de cierre con rounded-xl para mantener la coherencia */}
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setMostrarBuscador(false);
+                                    setTextoBusquedaNav("");
+                                }}
+                                className="p-2 text-background/60 hover:text-background hover:bg-white/10 rounded-xl transition-all cursor-pointer shrink-0"
+                                title="Cerrar búsqueda"
+                            >
+                                <X className="h-5 w-5" />
                             </button>
+                        </form>
+                    ) : (
 
-                            {/* DROPDOWN: Ahora no se corta porque el padre NO tiene overflow-hidden */}
-                            {desplegableAbierto && (
-                                <div className="absolute left-0 w-52 bg-white border border-slate-100 shadow-2xl rounded-xl py-2 mt-3 animate-in fade-in slide-in-from-top-2 duration-200 z-60 ">
-                                    <Link
-                                        href="/productos"
-                                        className="block px-4 py-2.5 text-xs font-base font-bold uppercase tracking-wider text-primary hover:bg-primary/5 transition-colors"
-                                        onClick={() => setDesplegableAbierto(false)}
-                                    >
-                                        Ver Todos
-                                    </Link>
-                                    <div className="border-t border-slate-100 my-1"></div>
-                                    {categorias.map((cat) => (
-                                        <Link
-                                            key={`nav-drop-${cat.id}`}
-                                            href={`/productos?categoria=${encodeURIComponent(cat.nombreCategoria)}`}
-                                            className="block px-4 py-2.5 text-xs font-base font-medium text-slate-700 hover:bg-primary/5 hover:text-primary transition-colors"
-                                            onClick={() => setDesplegableAbierto(false)}
-                                        >
-                                            {cat.nombreCategoria}
-                                        </Link>
-                                    ))}
+                        // VISTA B: MODO NAVBAR ESTÁNDAR
+                        <>
+                            {/* LOGO */}
+                            <Link href="/" className="flex items-center gap-3 select-none hover:opacity-90 transition-opacity">
+                                <div className="h-9 w-9 bg-background rounded-xl flex items-center justify-center text-primary font-retro text-xl shadow-sm">
+                                    H
                                 </div>
-                            )}
-                        </div>
+                                <div className="flex flex-col">
+                                    <span className="font-retro text-2xl text-background tracking-wide leading-none">
+                                        HOLO
+                                    </span>
+                                    <span className="font-base text-[10px] font-semibold text-background/70 tracking-wider uppercase mt-0.5">
+                                        Stickers & Más
+                                    </span>
+                                </div>
+                            </Link>
 
-                        <Link
-                            href="/contacto"
-                            className="font-base text-xs font-bold uppercase tracking-wider text-background hover:text-background/80 transition-colors"
-                        >
-                            Contacto
-                        </Link>
-                    </div>
+                            {/* MENÚ ESCRITORIO */}
+                            <div className="hidden md:flex items-center gap-8">
+                                <Link
+                                    href="/"
+                                    className="font-base text-xs font-bold uppercase tracking-wider text-background hover:text-background/80 transition-colors"
+                                >
+                                    Inicio
+                                </Link>
 
-                    {/* ACCIONES DERECHA */}
-                    <div className="flex items-center gap-2 text-background">
-                        <button
-                            onClick={() => enrutador.push("/productos")}
-                            className="p-2.5 text-background hover:bg-white/10 rounded-xl transition-all cursor-pointer"
-                            title="Buscar productos"
-                        >
-                            <Search className="h-5 w-5" />
-                        </button>
+                                <div
+                                    className="relative"
+                                    onMouseEnter={manejarEntradaMouse}
+                                    onMouseLeave={manejarSalidaMouse}
+                                >
+                                    <button className="flex items-center gap-1 font-base text-xs font-bold uppercase tracking-wider text-background hover:text-background/80 transition-colors cursor-pointer py-1">
+                                        Productos
+                                        <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${desplegableAbierto ? "rotate-180" : ""}`} />
+                                    </button>
 
-                        <CarritoCompras />
+                                    {/* Dropdown de productos: Ya no se corta nunca más */}
+                                    {desplegableAbierto && (
+                                        <div className="absolute left-0 w-52 bg-white border border-slate-100 shadow-2xl rounded-xl py-2 mt-3 animate-in fade-in slide-in-from-top-2 duration-200 z-60">
+                                            <Link
+                                                href="/productos"
+                                                className="block px-4 py-2.5 text-xs font-base font-bold uppercase tracking-wider text-primary hover:bg-primary/5 transition-colors"
+                                                onClick={() => setDesplegableAbierto(false)}
+                                            >
+                                                Ver Todos
+                                            </Link>
+                                            <div className="border-t border-slate-100 my-1"></div>
+                                            {categorias.map((cat) => (
+                                                <Link
+                                                    key={`nav-drop-${cat.id}`}
+                                                    href={`/productos?categoria=${encodeURIComponent(cat.nombreCategoria)}`}
+                                                    className="block px-4 py-2.5 text-xs font-base font-medium text-slate-700 hover:bg-primary/5 hover:text-primary transition-colors"
+                                                    onClick={() => setDesplegableAbierto(false)}
+                                                >
+                                                    {cat.nombreCategoria}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
 
-                        <button
-                            onClick={() => setMenuCelularAbierto(!menuCelularAbierto)}
-                            className="p-2.5 text-background hover:bg-white/10 rounded-xl transition-all md:hidden cursor-pointer ml-1"
-                        >
-                            {menuCelularAbierto ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                        </button>
-                    </div>
+                                <Link
+                                    href="/contacto"
+                                    className="font-base text-xs font-bold uppercase tracking-wider text-background hover:text-background/80 transition-colors"
+                                >
+                                    Contacto
+                                </Link>
+                            </div>
+
+                            {/* ACCIONES DE LA DERECHA */}
+                            <div className="flex items-center gap-2 text-background">
+                                <button
+                                    onClick={() => setMostrarBuscador(true)}
+                                    className="p-2.5 text-background hover:bg-white/10 rounded-xl transition-all cursor-pointer"
+                                    title="Buscar productos"
+                                >
+                                    <Search className="h-5 w-5" />
+                                </button>
+
+                                <CarritoCompras />
+
+                                <button
+                                    onClick={() => setMenuCelularAbierto(!menuCelularAbierto)}
+                                    className="p-2.5 text-background hover:bg-white/10 rounded-xl transition-all md:hidden cursor-pointer ml-1"
+                                >
+                                    {menuCelularAbierto ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                                </button>
+                            </div>
+                        </>
+                    )}
                 </div>
 
-                {/* MENÚ CELULAR: Agregamos rounded-b-2xl para que el final del menú también sea curvo */}
-                {menuCelularAbierto && (
+                {/* MENÚ DESPLEGABLE CELULARES */}
+                {!mostrarBuscador && menuCelularAbierto && (
                     <div className="md:hidden border-t border-white/10 bg-primary px-6 py-6 flex flex-col gap-5 animate-in fade-in slide-in-from-top-2 duration-200 w-full rounded-b-2xl">
                         <Link
                             href="/"

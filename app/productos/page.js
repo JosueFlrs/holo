@@ -3,37 +3,40 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import BarraNavegacion from "@/components/barraNavegacion";
 import TarjetaProducto from "@/components/tarjetaProducto";
 import { clienteSupabase } from "@/utilities/clienteSupabase";
-import { ChevronRight, SlidersHorizontal, ArrowDownCircle } from "lucide-react";
+import { ChevronRight, SlidersHorizontal, ArrowDownCircle, Search, X } from "lucide-react";
 
 const TAMANO_PAGINA = 12;
 
 export default function PaginaTodosLosProductos() {
     const enrutador = useRouter();
     const parametrosUrl = useSearchParams();
+
+    // Leemos tanto la categoría como el término de búsqueda desde la URL
     const categoriaDeEntrada = parametrosUrl.get("categoria");
+    const terminoDeEntrada = parametrosUrl.get("buscar") || "";
+
     const [productos, setProductos] = useState([]);
     const [categorias, setCategorias] = useState([]);
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("Todos");
     const [criterioOrden, setCriterioOrden] = useState("novedades");
     const [estaCargando, setEstaCargando] = useState(true);
     const [cargandoMas, setCargandoMas] = useState(false);
-
-    // Controlamos la página actual para calcular el rango en Supabase
     const [paginaActual, setPaginaActual] = useState(0);
-    // Flag para saber si llegamos al final del catálogo en la base de datos
     const [hayMasProductos, setHayMasProductos] = useState(true);
 
-    useEffect(() => {
-        if (categoriaDeEntrada) {
-            setCategoriaSeleccionada(categoriaDeEntrada);
-        }
-    }, [categoriaDeEntrada]);
+    // Estado para controlar el input de búsqueda
+    const [textoBusqueda, setTextoBusqueda] = useState(terminoDeEntrada);
 
-    // 1. Cargar las categorías una sola vez al montar el componente
+    // Sincronizar input si cambia la URL externamente (ej: desde la lupa de la Navbar)
+    useEffect(() => {
+        setTextoBusqueda(terminoDeEntrada);
+    }, [terminoDeEntrada]);
+
+    // Cargar categorías una sola vez
     useEffect(() => {
         async function cargarCategorias() {
             const { data } = await clienteSupabase
@@ -44,7 +47,17 @@ export default function PaginaTodosLosProductos() {
         cargarCategorias();
     }, []);
 
-    // 2. Efecto central: Se dispara CADA VEZ que cambia la categoría, el orden o la página solicitada
+    // Sincronizar categoría de entrada de la URL
+    useEffect(() => {
+        if (categoriaDeEntrada) {
+            setCategoriaSeleccionada(categoriaDeEntrada);
+        } else {
+            setCategoriaSeleccionada("Todos");
+        }
+        setPaginaActual(0);
+    }, [categoriaDeEntrada]);
+
+    // EFECTO CENTRAL: Filtros y paginación desde el servidor de Supabase
     useEffect(() => {
         async function consultarSupabase() {
             if (paginaActual === 0) {
@@ -53,11 +66,9 @@ export default function PaginaTodosLosProductos() {
                 setCargandoMas(true);
             }
 
-            // Calculamos los índices de registros exactos que le pediremos a Postgres
             const desde = paginaActual * TAMANO_PAGINA;
             const hasta = desde + TAMANO_PAGINA - 1;
 
-            // Armamos la query base
             let consulta = clienteSupabase
                 .from('productos')
                 .select(`
@@ -69,15 +80,18 @@ export default function PaginaTodosLosProductos() {
           variantesProducto ( id, nombreVariante, precioUnitario, urlImagen )
         `);
 
-            // Aplicamos el filtro de categoría directamente en el motor de Base de Datos si corresponde
+            // Si hay un término en la URL, filtramos en Postgres por nombre del producto
+            if (terminoDeEntrada) {
+                consulta = consulta.ilike('nombreProducto', `%${terminoDeEntrada}%`);
+            }
+
             if (categoriaSeleccionada !== "Todos") {
                 consulta = consulta.eq('categorias.nombreCategoria', categoriaSeleccionada);
             }
 
-            // Aplicamos el ordenamiento dinámico desde el servidor para que el rango sea preciso
+            // Ordenamiento
             switch (criterioOrden) {
                 case "precio-menor":
-                    // Ordena por el precio unitario de su variante de forma ascendente
                     consulta = consulta.order('precioUnitario', { foreignTable: 'variantesProducto', ascending: true });
                     break;
                 case "precio-mayor":
@@ -92,7 +106,6 @@ export default function PaginaTodosLosProductos() {
                     break;
             }
 
-            // CAMBIO ESTRATÉGICO: Pedimos únicamente el bloque de registros solicitado
             const { data: nuevosProductos, error } = await consulta.range(desde, hasta);
 
             if (error) {
@@ -100,14 +113,12 @@ export default function PaginaTodosLosProductos() {
             }
 
             if (nuevosProductos) {
-                // Si la respuesta vino con menos elementos del tamaño de página, significa que no quedan más
                 if (nuevosProductos.length < TAMANO_PAGINA) {
                     setHayMasProductos(false);
                 } else {
                     setHayMasProductos(true);
                 }
 
-                // Si es la página 0, reiniciamos el array. Si es una página avanzada, los agregamos al final
                 if (paginaActual === 0) {
                     setProductos(nuevosProductos);
                 } else {
@@ -120,18 +131,39 @@ export default function PaginaTodosLosProductos() {
         }
 
         consultarSupabase();
-    }, [categoriaSeleccionada, criterioOrden, paginaActual]);
+    }, [categoriaSeleccionada, criterioOrden, paginaActual, terminoDeEntrada]);
 
-    // Si el usuario cambia el filtro o el orden, reseteamos la paginación a la hoja 0
-    const manejarCambioFiltro = (nombreCat) => {
-        // Si elige "Todos", limpiamos el parámetro para que quede prolijo (/productos)
-        if (nombreCat === "Todos") {
-            enrutador.push("/productos");
+    // Ejecutar búsqueda al presionar ENTER o botón Buscar
+    const manejarSubmitBusqueda = (e) => {
+        e.preventDefault();
+        setPaginaActual(0);
+
+        const params = new URLSearchParams(window.location.search);
+        if (textoBusqueda.trim()) {
+            params.set("buscar", textoBusqueda.trim());
         } else {
-            // Si elige una categoría, inyectamos el query string en la URL
-            enrutador.push(`/productos?categoria=${encodeURIComponent(nombreCat)}`);
+            params.delete("buscar");
         }
-        // Modificamos el estado para que el useEffect de Supabase se entere del cambio al toque
+        enrutador.push(`/productos?${params.toString()}`);
+    };
+
+    // Limpiar el buscador por completo
+    const limpiarBuscador = () => {
+        setTextoBusqueda("");
+        setPaginaActual(0);
+        const params = new URLSearchParams(window.location.search);
+        params.delete("buscar");
+        enrutador.push(`/productos?${params.toString()}`);
+    };
+
+    const manejarCambioFiltro = (nombreCat) => {
+        const params = new URLSearchParams(window.location.search);
+        if (nombreCat === "Todos") {
+            params.delete("categoria");
+        } else {
+            params.set("categoria", nombreCat);
+        }
+        enrutador.push(`/productos?${params.toString()}`);
         setCategoriaSeleccionada(nombreCat);
         setPaginaActual(0);
     };
@@ -149,9 +181,11 @@ export default function PaginaTodosLosProductos() {
         <div className="min-h-screen bg-background pb-20">
             <BarraNavegacion />
 
-            {/* SECCIÓN SUPERIOR: Ruta e Inserción de Ordenamiento */}
-            <div className="max-w-7xl mx-auto px-6 pt-8 pb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200/40 select-none">
-                <nav className="flex items-center gap-1.5 font-base text-xs font-bold text-foreground/40 uppercase tracking-wider">
+            {/* SECCIÓN SUPERIOR UNIFICADA: Ruta, Buscador Central y Ordenamiento */}
+            <div className="max-w-7xl mx-auto px-6 pt-8 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/40 select-none">
+
+                {/* 1. RUTA (BREADCRUMBS) */}
+                <nav className="flex items-center gap-1.5 font-base text-xs font-bold text-foreground/40 uppercase tracking-wider shrink-0 w-full md:w-auto">
                     <Link href="/" className="hover:text-primary transition-colors">
                         Inicio
                     </Link>
@@ -159,15 +193,47 @@ export default function PaginaTodosLosProductos() {
                     <span className="text-foreground/80">Productos</span>
                 </nav>
 
-                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                    <label htmlFor="ordenar" className="font-base text-xs font-bold uppercase tracking-wider text-foreground/50 hidden md:inline-block">
+                {/* 2. BARRA DE BÚSQUEDA INTERNA CENTRAL */}
+                <div className="w-full md:max-w-md flex justify-center">
+                    <form onSubmit={manejarSubmitBusqueda} className="relative w-full flex gap-2">
+                        <div className="relative flex-1">
+                            <input
+                                type="text"
+                                placeholder="Buscar stickers por nombre..."
+                                value={textoBusqueda}
+                                onChange={(e) => setTextoBusqueda(e.target.value)}
+                                className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-10 py-2 text-xs focus:outline-none focus:border-primary shadow-sm text-slate-800 font-base"
+                            />
+                            <Search className="absolute left-3.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                            {textoBusqueda && (
+                                <button
+                                    type="button"
+                                    onClick={limpiarBuscador}
+                                    className="absolute right-3 top-2.5 p-0.5 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
+                                >
+                                    <X className="h-3.5 w-3.5" />
+                                </button>
+                            )}
+                        </div>
+                        <button
+                            type="submit"
+                            className="bg-primary hover:bg-primary/90 text-white px-4 rounded-xl text-[10px] font-base font-bold uppercase tracking-wider shadow-sm transition-colors cursor-pointer"
+                        >
+                            Buscar
+                        </button>
+                    </form>
+                </div>
+
+                {/* 3. ORDENAMIENTO */}
+                <div className="flex items-center gap-2 w-full md:w-auto justify-end shrink-0">
+                    <label htmlFor="ordenar" className="font-base text-xs font-bold uppercase tracking-wider text-foreground/50 hidden lg:inline-block">
                         Ordenar por:
                     </label>
                     <select
                         id="ordenar"
                         value={criterioOrden}
                         onChange={(e) => manejarCambioOrden(e.target.value)}
-                        className="text-xs font-base font-bold uppercase tracking-wider bg-white border border-slate-200/80 rounded-xl px-3 py-2.5 text-slate-800 focus:outline-none focus:border-primary cursor-pointer shadow-sm min-w-45"
+                        className="text-xs font-base font-bold uppercase tracking-wider bg-white border border-slate-200/80 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-primary cursor-pointer shadow-sm min-w-45 w-full md:w-auto"
                     >
                         <option value="novedades">Más nuevos primero</option>
                         <option value="antiguo">Más viejos primero</option>
@@ -178,11 +244,11 @@ export default function PaginaTodosLosProductos() {
             </div>
 
             {/* LAYOUT DE COLUMNAS */}
-            <div className="max-w-7xl mx-auto px-6 mt-10 flex flex-col lg:flex-row gap-10">
+            <div className="max-w-7xl mx-auto px-6 mt-6 flex flex-col lg:flex-row gap-10">
 
                 {/* SIDEBAR DE CATEGORÍAS */}
                 <aside className="w-full lg:w-64 shrink-0">
-                    <div className="bg-white/40 border border-slate-200/40 rounded-2xl p-5 sticky top-24">
+                    <div className="bg-white/40 border border-slate-200/40 rounded-2xl p-5 sticky top-30">
                         <h2 className="font-retro text-lg text-slate-900 mb-4 flex items-center gap-2 select-none">
                             <SlidersHorizontal className="h-4 w-4 text-primary" />
                             Categorías
@@ -222,22 +288,26 @@ export default function PaginaTodosLosProductos() {
                 <main className="flex-1">
                     {estaCargando ? (
                         <div className="text-center font-base text-foreground/40 py-24 animate-pulse font-bold">
-                            Consultando rango en Supabase...
+                            Filtrando catálogo en Supabase...
                         </div>
                     ) : productos.length === 0 ? (
-                        <div className="text-center font-base text-foreground/40 py-20 bg-white/40 rounded-2xl border border-dashed border-slate-200/80">
-                            No se encontraron productos en esta sección.
+                        <div className="text-center font-base text-foreground/40 py-20 bg-white/40 rounded-2xl border border-dashed border-slate-200/80 px-4">
+                            No encontramos stickers que coincidan con "{terminoDeEntrada || categoriaSeleccionada}". ¡Probá con otra palabra!
                         </div>
                     ) : (
                         <div>
-                            {/* Grilla principal */}
+                            <p className="font-base text-[10px] font-bold text-foreground/40 uppercase tracking-widest mb-6 select-none">
+                                {terminoDeEntrada ? `Resultados para "${terminoDeEntrada}": ` : ""}Viendo {productos.length} diseños cargados en pantalla
+                            </p>
+
+                            {/* Grilla principal con 2 columnas fijas en celulares */}
                             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3 sm:gap-6">
                                 {productos.map((unProducto) => (
                                     <TarjetaProducto key={`server-catalogo-${unProducto.id}`} unProducto={unProducto} />
                                 ))}
                             </div>
 
-                            {/* BOTÓN DINÁMICO DE CARGAR MÁS CON LAZADO DE SERVIDOR */}
+                            {/* BOTÓN DINÁMICO DE CARGAR MÁS */}
                             {hayMasProductos && (
                                 <div className="flex justify-center mt-14">
                                     <button
@@ -246,7 +316,7 @@ export default function PaginaTodosLosProductos() {
                                         className="group font-retro text-sm px-8 py-3.5 bg-primary text-white hover:bg-primary/90 disabled:bg-primary/50 rounded-2xl shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg tracking-wider uppercase flex items-center gap-2 cursor-pointer"
                                     >
                                         <ArrowDownCircle className={`h-4 w-4 transition-transform ${cargandoMas ? 'animate-spin' : 'group-hover:translate-y-0.5'}`} />
-                                        {cargandoMas ? 'Pidiendo más stickers...' : 'Cargar más productos'}
+                                        {cargandoMas ? 'Buscando más...' : 'Cargar más productos'}
                                     </button>
                                 </div>
                             )}
