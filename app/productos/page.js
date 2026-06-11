@@ -3,14 +3,17 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import BarraNavegacion from "@/components/barraNavegacion";
 import TarjetaProducto from "@/components/tarjetaProducto";
 import { clienteSupabase } from "@/utilities/clienteSupabase";
 import { ChevronRight, SlidersHorizontal, ArrowDownCircle } from "lucide-react";
 
-const TAMANO_PAGINA = 12; // Cantidad de productos por lote
+const TAMANO_PAGINA = 12;
 
 export default function PaginaTodosLosProductos() {
+    const parametrosUrl = useSearchParams();
+    const categoriaDeEntrada = parametrosUrl.get("categoria");
     const [productos, setProductos] = useState([]);
     const [categorias, setCategorias] = useState([]);
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("Todos");
@@ -22,6 +25,12 @@ export default function PaginaTodosLosProductos() {
     const [paginaActual, setPaginaActual] = useState(0);
     // Flag para saber si llegamos al final del catálogo en la base de datos
     const [hayMasProductos, setHayMasProductos] = useState(true);
+
+    useEffect(() => {
+        if (categoriaDeEntrada) {
+            setCategoriaSeleccionada(categoriaDeEntrada);
+        }
+    }, [categoriaDeEntrada]);
 
     // 1. Cargar las categorías una sola vez al montar el componente
     useEffect(() => {
@@ -174,8 +183,8 @@ export default function PaginaTodosLosProductos() {
                             <button
                                 onClick={() => manejarCambioFiltro("Todos")}
                                 className={`w-auto lg:w-full text-left text-xs font-base font-bold uppercase tracking-wider px-4 py-3 rounded-xl transition-all cursor-pointer ${categoriaSeleccionada === "Todos"
-                                        ? 'bg-accent text-background shadow-sm translate-x-1 lg:translate-x-2'
-                                        : 'text-foreground/70 hover:bg-slate-100/60 hover:text-foreground'
+                                    ? 'bg-accent text-background shadow-sm translate-x-1 lg:translate-x-2'
+                                    : 'text-foreground/70 hover:bg-slate-100/60 hover:text-foreground'
                                     }`}
                             >
                                 Todos los productos
@@ -188,8 +197,8 @@ export default function PaginaTodosLosProductos() {
                                         key={`sidebar-cat-${cat.id}`}
                                         onClick={() => manejarCambioFiltro(cat.nombreCategoria)}
                                         className={`w-auto lg:w-full text-left text-xs font-base font-bold uppercase tracking-wider px-4 py-3 rounded-xl transition-all cursor-pointer ${esActivo
-                                                ? 'bg-accent text-background shadow-sm translate-x-1 lg:translate-x-2'
-                                                : 'text-foreground/70 hover:bg-slate-100/60 hover:text-foreground'
+                                            ? 'bg-accent text-background shadow-sm translate-x-1 lg:translate-x-2'
+                                            : 'text-foreground/70 hover:bg-slate-100/60 hover:text-foreground'
                                             }`}
                                     >
                                         {cat.nombreCategoria}
@@ -212,10 +221,6 @@ export default function PaginaTodosLosProductos() {
                         </div>
                     ) : (
                         <div>
-                            <p className="font-base text-[10px] font-bold text-foreground/40 uppercase tracking-widest mb-6 select-none">
-                                Viendo {productos.length} diseños cargados en pantalla
-                            </p>
-
                             {/* Grilla principal */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
                                 {productos.map((unProducto) => (
