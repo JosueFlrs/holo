@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import BarraNavegacion from "@/components/barraNavegacion";
 import TarjetaProducto from "@/components/tarjetaProducto";
 import { clienteSupabase } from "@/utilities/clienteSupabase";
@@ -12,6 +12,7 @@ import { ChevronRight, SlidersHorizontal, ArrowDownCircle } from "lucide-react";
 const TAMANO_PAGINA = 12;
 
 export default function PaginaTodosLosProductos() {
+    const enrutador = useRouter();
     const parametrosUrl = useSearchParams();
     const categoriaDeEntrada = parametrosUrl.get("categoria");
     const [productos, setProductos] = useState([]);
@@ -123,6 +124,14 @@ export default function PaginaTodosLosProductos() {
 
     // Si el usuario cambia el filtro o el orden, reseteamos la paginación a la hoja 0
     const manejarCambioFiltro = (nombreCat) => {
+        // Si elige "Todos", limpiamos el parámetro para que quede prolijo (/productos)
+        if (nombreCat === "Todos") {
+            enrutador.push("/productos");
+        } else {
+            // Si elige una categoría, inyectamos el query string en la URL
+            enrutador.push(`/productos?categoria=${encodeURIComponent(nombreCat)}`);
+        }
+        // Modificamos el estado para que el useEffect de Supabase se entere del cambio al toque
         setCategoriaSeleccionada(nombreCat);
         setPaginaActual(0);
     };
@@ -222,7 +231,7 @@ export default function PaginaTodosLosProductos() {
                     ) : (
                         <div>
                             {/* Grilla principal */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3 sm:gap-6">
                                 {productos.map((unProducto) => (
                                     <TarjetaProducto key={`server-catalogo-${unProducto.id}`} unProducto={unProducto} />
                                 ))}

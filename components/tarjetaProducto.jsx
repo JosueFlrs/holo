@@ -64,14 +64,29 @@ export default function TarjetaProducto({ unProducto }) {
                 </CardContent>
             </div>
 
-            {/* Footer Fijo con Precio */}
+            {/* Footer Fijo con Precio y Botón en Mobile */}
             <CardFooter className="p-4 pt-0 flex flex-col items-center justify-center w-full pb-2">
                 <span className="font-retro text-xl text-slate-900 tracking-wide">
                     ${Number(varianteInicial.precioUnitario).toLocaleString('es-AR')}
                 </span>
 
-                {/* BOTÓN FLOTANTE: Aparece suavemente desde abajo en el hover */}
-                <div className="w-full mt-3 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 absolute bottom-2 left-0 px-4 bg-background/90 backdrop-blur-sm py-1 z-10">
+                {/* NUEVO BOTÓN PARA CELULARES: Siempre visible abajo del precio, desaparece en escritorios (md:hidden) */}
+                <div className="w-full mt-3 md:hidden">
+                    <Button
+                        size="sm"
+                        className="w-full bg-primary hover:bg-primary/90 text-white font-base font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all h-10 gap-2 cursor-pointer"
+                        onClick={(evento) => {
+                            evento.stopPropagation();
+                            agregarAlCarrito(varianteInicial, unProducto);
+                        }}
+                    >
+                        <ShoppingCart className="h-4 w-4" />
+                        Añadir
+                    </Button>
+                </div>
+
+                {/* BOTÓN FLOTANTE ORIGINAL PARA COMPUTADORAS: Agregada la clase md:block y hidden por defecto */}
+                <div className="hidden md:block w-full mt-3 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 absolute bottom-2 left-0 px-4 bg-background/90 backdrop-blur-sm py-1 z-10">
                     <Button
                         size="sm"
                         className="w-full bg-primary hover:bg-primary/90 text-white font-base font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all h-10 gap-2 cursor-pointer"

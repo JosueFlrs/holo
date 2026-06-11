@@ -51,3 +51,7 @@
     --border: 260 30% 25%;
   }
 }
+
+html {
+  scrollbar-gutter: stable;
+}
