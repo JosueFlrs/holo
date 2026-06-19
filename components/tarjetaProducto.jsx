@@ -47,12 +47,14 @@ export default function TarjetaProducto({ unProducto }) {
 
     // Ejecuta la inserción real en tu store de Zustand multiplicando por la cantidad elegida
     const confirmarAgregarAlCarrito = () => {
-        // Tu store actual suma de a 1, por lo que podemos adaptarlo ejecutando un bucle 
-        // o modificando el artículo. Para no romper tu usarCarrito.js actual, lo sumamos las veces seleccionadas:
         for (let i = 0; i < cantidadSeleccionada; i++) {
             agregarAlCarrito(varianteInicial, unProducto);
         }
         setModalAbierto(false);
+
+        // Disparamos el evento global para que el componente CarritoCompras se entere
+        const eventoAbrir = new CustomEvent('abrirCarrito');
+        window.dispatchEvent(eventoAbrir);
     };
 
     return (
@@ -95,8 +97,7 @@ export default function TarjetaProducto({ unProducto }) {
                             className="w-full bg-primary hover:bg-primary/90 text-white font-base font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all h-10 gap-2 cursor-pointer"
                             onClick={abrirModalConfirmacion}
                         >
-                            <ShoppingCart className="h-4 w-4" />
-                            Añadir
+                            Comprar
                         </Button>
                     </div>
 
