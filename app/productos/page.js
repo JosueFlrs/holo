@@ -182,7 +182,7 @@ export default function PaginaTodosLosProductos() {
             <BarraNavegacion />
 
             {/* SECCIÓN SUPERIOR UNIFICADA: Ruta, Buscador Central y Ordenamiento */}
-            <div className="max-w-7xl mx-auto px-6 pt-8 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/40 select-none">
+            <div className="max-w-7xl mx-auto px-6 pt-28     pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/40 select-none">
 
                 {/* 1. RUTA (BREADCRUMBS) */}
                 <nav className="flex items-center gap-1.5 font-base text-xs font-bold text-foreground/40 uppercase tracking-wider shrink-0 w-full md:w-auto">

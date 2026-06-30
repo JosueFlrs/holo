@@ -161,7 +161,7 @@ export default function CarruselHero() {
             </div>
 
             {/* ICONO REBOTANDO: Lo dejamos en absolute bottom-4 respecto al final del 90dvh */}
-            <div className="relative mt-5 left-0 w-full flex justify-center z-30 pointer-events-none">
+            <div className="absolute -bottom-16 left-0 w-full flex justify-center z-30 pointer-events-none">
                 <button
                     onClick={ejecutarScrollAbajo}
                     className="pointer-events-auto p-3 text-primary animate-bounce cursor-pointer flex items-center justify-center"

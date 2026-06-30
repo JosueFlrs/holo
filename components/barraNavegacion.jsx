@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams} from "next/navigation";
 import { clienteSupabase } from "@/utilities/clienteSupabase";
 import CarritoCompras from "./carritoCompras";
 import { Menu, X, ChevronDown, Search } from "lucide-react";
@@ -11,6 +11,7 @@ import { Menu, X, ChevronDown, Search } from "lucide-react";
 export default function BarraNavegacion() {
     const enrutador = useRouter();
     const parametrosUrl = useSearchParams();
+    
 
     const [categorias, setCategorias] = useState([]);
     const [menuCelularAbierto, setMenuCelularAbierto] = useState(false);
@@ -81,7 +82,7 @@ export default function BarraNavegacion() {
 
     return (
         // CONTENEDOR FLOTANTE PADRE
-        <div className="sticky top-0 z-50 w-full px-4 pt-4 pb-2 bg-transparent select-none">
+        <div className="fixed top-0 left-0 w-full px-4 pt-4 pb-2 bg-transparent select-none z-50">
 
             {/* SOLUCIÓN: Quitamos 'overflow-hidden' de este header para liberar el Dropdown */}
             <header className="max-w-5xl mx-auto bg-primary/85 backdrop-blur-xl transition-all duration-300 shadow-lg rounded-4xl border border-white/20">
