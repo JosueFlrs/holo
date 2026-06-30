@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams} from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { clienteSupabase } from "@/utilities/clienteSupabase";
 import CarritoCompras from "./carritoCompras";
 import { Menu, X, ChevronDown, Search } from "lucide-react";
@@ -11,18 +11,34 @@ import { Menu, X, ChevronDown, Search } from "lucide-react";
 export default function BarraNavegacion() {
     const enrutador = useRouter();
     const parametrosUrl = useSearchParams();
-    
+    const rutaActual = usePathname();
 
     const [categorias, setCategorias] = useState([]);
     const [menuCelularAbierto, setMenuCelularAbierto] = useState(false);
     const [desplegableAbierto, setDesplegableAbierto] = useState(false);
-
-    // Estados para la transformación de la barra
     const [mostrarBuscador, setMostrarBuscador] = useState(false);
     const [textoBusquedaNav, setTextoBusquedaNav] = useState("");
     const referenciaInput = useRef(null);
-
     const idTemporizador = useRef(null);
+
+    // 1. NUEVO ESTADO: Detectar si el usuario se desplazó hacia abajo
+    const [usuarioHizoScroll, setUsuarioHizoScroll] = useState(false);
+
+    useEffect(() => {
+        const manejarScrollDePantalla = () => {
+            if (window.scrollY > 20) {
+                setUsuarioHizoScroll(true);
+            } else {
+                setUsuarioHizoScroll(false);
+            }
+        };
+
+        // Escuchamos el movimiento del scroll apenas se monta el componente
+        window.addEventListener("scroll", manejarScrollDePantalla);
+        return () => {
+            window.removeEventListener("scroll", manejarScrollDePantalla);
+        };
+    }, []);
 
     useEffect(() => {
         async function obtenerCategoriasNav() {
@@ -41,14 +57,12 @@ export default function BarraNavegacion() {
         };
     }, []);
 
-    // Autofoco al input cuando toda la barra muta en el buscador
     useEffect(() => {
         if (mostrarBuscador && referenciaInput.current) {
             referenciaInput.current.focus();
         }
     }, [mostrarBuscador]);
 
-    // Sincronizar por si limpian la búsqueda desde las etiquetas del catálogo
     useEffect(() => {
         const queryBuscar = parametrosUrl.get("buscar") || "";
         setTextoBusquedaNav(queryBuscar);
@@ -71,7 +85,6 @@ export default function BarraNavegacion() {
 
     const ejecutarBusquedaNavbar = (e) => {
         if (e) e.preventDefault();
-
         if (textoBusquedaNav.trim()) {
             enrutador.push(`/productos?buscar=${encodeURIComponent(textoBusquedaNav.trim())}`);
         } else {
@@ -81,11 +94,18 @@ export default function BarraNavegacion() {
     };
 
     return (
-        // CONTENEDOR FLOTANTE PADRE
+        // Mantenemos el fixed universal que estructuramos antes para que no se rompa productos
         <div className="fixed top-0 left-0 w-full px-4 pt-4 pb-2 bg-transparent select-none z-50">
 
-            {/* SOLUCIÓN: Quitamos 'overflow-hidden' de este header para liberar el Dropdown */}
-            <header className="max-w-5xl mx-auto bg-primary/85 backdrop-blur-xl transition-all duration-300 shadow-lg rounded-4xl border border-white/20">
+            {/* 2. ANIMACIÓN DINÁMICA AQUÍ: 
+               Modificamos las clases del header. Si está arriba de todo es transparente y sin bordes.
+               Apenas hace scroll, adquiere el color de fondo naranja, el blur y los bordes con una transición suave. */}
+            <header className={`max-w-5xl mx-auto transition-all duration-500 ease-in-out ${rutaActual !== "/"
+                    ? "bg-primary/85 backdrop-blur-xl shadow-lg border-white/20 rounded-4xl border"
+                    : usuarioHizoScroll
+                        ? "bg-primary/85 backdrop-blur-xl shadow-lg border-white/20 rounded-4xl border"
+                        : "bg-transparent shadow-none border-transparent rounded-4xl border"
+                }`}>
 
                 <div className="w-full px-6 h-16 flex items-center justify-between">
 
@@ -96,7 +116,6 @@ export default function BarraNavegacion() {
                             className="w-full h-full flex items-center gap-4 animate-in fade-in duration-200"
                         >
                             <Search className="h-5 w-5 text-background/60 shrink-0" />
-
                             <input
                                 ref={referenciaInput}
                                 type="text"
@@ -105,8 +124,6 @@ export default function BarraNavegacion() {
                                 onChange={(e) => setTextoBusquedaNav(e.target.value)}
                                 className="w-full h-full bg-transparent text-background font-base text-sm focus:outline-none placeholder:text-background/50"
                             />
-
-                            {/* Botón de cierre con rounded-xl para mantener la coherencia */}
                             <button
                                 type="button"
                                 onClick={() => {
@@ -125,7 +142,9 @@ export default function BarraNavegacion() {
                         <>
                             {/* LOGO */}
                             <Link href="/" className="flex items-center gap-3 select-none hover:opacity-90 transition-opacity">
-                                <div className="h-9 w-9 bg-background rounded-xl flex items-center justify-center text-primary font-retro text-xl shadow-sm">
+                                {/* Modificación sutil: el fondo del logo H cambia según el scroll para no perder contraste */}
+                                <div className={`h-9 w-9 rounded-xl flex items-center justify-center font-retro text-xl shadow-sm transition-colors duration-500 ${usuarioHizoScroll ? "bg-background text-primary" : "bg-white/20 text-white backdrop-blur-md"
+                                    }`}>
                                     H
                                 </div>
                                 <div className="flex flex-col">
@@ -157,7 +176,6 @@ export default function BarraNavegacion() {
                                         <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${desplegableAbierto ? "rotate-180" : ""}`} />
                                     </button>
 
-                                    {/* Dropdown de productos: Ya no se corta nunca más */}
                                     {desplegableAbierto && (
                                         <div className="absolute left-0 w-52 bg-white border border-slate-100 shadow-2xl rounded-xl py-2 mt-3 animate-in fade-in slide-in-from-top-2 duration-200 z-60">
                                             <Link
@@ -213,9 +231,9 @@ export default function BarraNavegacion() {
                     )}
                 </div>
 
-                {/* MENÚ DESPLEGABLE CELULARES */}
+                {/* MENÚ DESPLEGABLE CELULARES (Adquiere fondo sólido si se abre para que sea legible) */}
                 {!mostrarBuscador && menuCelularAbierto && (
-                    <div className="md:hidden border-t border-white/10 bg-primary px-6 py-6 flex flex-col gap-5 animate-in fade-in slide-in-from-top-2 duration-200 w-full rounded-b-2xl">
+                    <div className="md:hidden border-t border-white/10 bg-primary px-6 py-6 flex flex-col gap-5 w-full rounded-b-2xl">
                         <Link
                             href="/"
                             className="font-base text-sm font-bold uppercase tracking-wider text-background py-1 border-b border-white/10"
@@ -223,7 +241,6 @@ export default function BarraNavegacion() {
                         >
                             Inicio
                         </Link>
-
                         <div className="flex flex-col gap-2">
                             <span className="font-base text-[10px] font-bold text-background/60 uppercase tracking-widest mb-1">
                                 Catálogo de Productos
@@ -246,7 +263,6 @@ export default function BarraNavegacion() {
                                 </Link>
                             ))}
                         </div>
-
                         <Link
                             href="/contacto"
                             className="font-base text-sm font-bold uppercase tracking-wider text-background py-2 border-t border-white/10 mt-1"
